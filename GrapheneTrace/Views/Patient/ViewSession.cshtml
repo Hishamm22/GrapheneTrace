@@ -1,0 +1,154 @@
+﻿@using GrapheneTrace.Models
+@{
+    ViewData["Title"] = "Session Details";
+
+    var session = ViewBag.Session as SensorSession;
+    var frame = ViewBag.CurrentFrame as SensorFrame;
+    var comments = ViewBag.Comments as List<Comment>;
+
+    int currentIndex = ViewBag.CurrentFrameIndex;
+    int totalFrames = ViewBag.TotalFrames;
+}
+
+<h1 class="mb-3">Session Details</h1>
+
+@if (session == null)
+{
+    <p class="text-danger">Session information is not available.</p>
+}
+else
+{
+    <div class="mb-3">
+        <strong>Session ID:</strong> @session.SessionID <br />
+        <strong>Start Time:</strong> @session.StartTime <br />
+        <strong>End Time:</strong> @session.EndTime <br />
+        <strong>Recording Area:</strong> @session.RecordingArea
+    </div>
+
+    @if (frame == null)
+    {
+        <p class="text-danger">No frames available for this session.</p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Real-time Pressure Map</h5>
+                        <p class="text-muted">
+                            Frame @(currentIndex + 1) of @totalFrames<br />
+                            Timestamp: @frame.Timestamp
+                        </p>
+
+                        <!-- Placeholder box where the heatmap will be drawn later -->
+                        <div style="width: 100%; height: 300px; border: 1px solid #ccc;
+                                            display:flex; align-items:center; justify-content:center;
+                                            background: #f8f9fa;">
+                            <span class="text-secondary">
+                                Heatmap placeholder (this will display the 32x32 pressure grid)
+                            </span>
+                        </div>
+
+                        <div class="mt-3 d-flex justify-content-between">
+                            <form asp-action="ViewSession" method="get">
+                                <input type="hidden" name="sessionId" value="@session.SessionID" />
+                                <input type="hidden" name="frameIndex" value="@(currentIndex - 1)" />
+                                <button type="submit" class="btn btn-outline-primary"
+                                        @(currentIndex == 0 ? "disabled" : "")>
+                                    &laquo; Previous frame
+                                </button>
+                            </form>
+
+                            <form asp-action="ViewSession" method="get">
+                                <input type="hidden" name="sessionId" value="@session.SessionID" />
+                                <input type="hidden" name="frameIndex" value="@(currentIndex + 1)" />
+                                <button type="submit" class="btn btn-outline-primary"
+                                        @(currentIndex >= totalFrames - 1 ? "disabled" : "")>
+                                    Next frame &raquo;
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="mt-3">
+                            <p><strong>Peak pressure index:</strong> @frame.PeakPressureIndex</p>
+                            <p><strong>Average pressure:</strong> @frame.AveragePressure</p>
+                            <p><strong>Contact area (%):</strong> @frame.ContactAreaPercent</p>
+                            <p><strong>Thermal reactivity score:</strong> @frame.ThermalReactivityScore</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes / Comments -->
+            <div class="col-md-4 mb-3">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Add a note</h5>
+
+                        @if (TempData["CommentError"] != null)
+                        {
+                            <div class="text-danger mb-2">@TempData["CommentError"]</div>
+                        }
+                        @if (TempData["CommentSuccess"] != null)
+                        {
+                            <div class="text-success mb-2">@TempData["CommentSuccess"]</div>
+                        }
+
+                        <form asp-action="AddComment" method="post">
+                            <input type="hidden" name="sessionId" value="@session.SessionID" />
+                            <input type="hidden" name="frameId" value="@frame.FrameID" />
+                            <input type="hidden" name="currentFrameIndex" value="@currentIndex" />
+
+                            <div class="mb-2">
+                                <label for="content" class="form-label">Describe your discomfort</label>
+                                <textarea id="content" name="content" rows="4" class="form-control"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Save note</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Notes for this session</h5>
+
+                        @if (comments == null || !comments.Any())
+                        {
+                            <p class="text-muted">No notes recorded yet.</p>
+                        }
+                        else
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var c in comments)
+                                {
+                                    <li class="list-group-item">
+                                        <small class="text-muted">@c.CreatedAt</small><br />
+                                        @c.Content
+                                        @if (c.FrameID != null)
+                                        {
+                                            <br />
+                                            <span class="badge bg-light text-muted">
+                                                Linked to this frame
+                                            </span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="mt-3">
+            <a asp-controller="Patient" asp-action="Dashboard" class="btn btn-secondary">
+                Back to dashboard
+            </a>
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-danger ms-2">
+                Logout
+            </a>
+        </p>
+    }
+}

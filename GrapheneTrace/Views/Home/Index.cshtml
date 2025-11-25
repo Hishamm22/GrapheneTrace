@@ -1,0 +1,302 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<style>
+    .gt-hero {
+        padding: 4rem 0 3rem 0;
+        background: radial-gradient(circle at top left, #1b263b, #0a0b10);
+        color: #f5f5f5;
+    }
+
+    .gt-hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+
+    .gt-hero-highlight {
+        color: #f39c12;
+    }
+
+    .gt-section-title {
+        text-align: center;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #f39c12;
+        margin-bottom: 0.5rem;
+    }
+
+    .gt-section-subtitle {
+        text-align: center;
+        color: #cccccc;
+        margin-bottom: 2rem;
+    }
+
+    .gt-feature-card {
+        background-color: #11131a;
+        border: 1px solid #222;
+        color: #f5f5f5;
+    }
+
+        .gt-feature-card p {
+            color: #cfcfcf;
+        }
+
+    .gt-testimonial-card {
+        background-color: #11131a;
+        border: 1px solid #222;
+        color: #f5f5f5;
+    }
+
+    .gt-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #f39c12;
+        margin-bottom: 0.75rem;
+    }
+
+    .gt-quote {
+        font-size: 0.95rem;
+        color: #d9d9d9;
+    }
+
+    .gt-name {
+        font-weight: 600;
+        color: #f39c12;
+    }
+
+    .gt-role {
+        font-size: 0.85rem;
+        color: #bbbbbb;
+    }
+
+    .gt-carousel-indicators [data-bs-target] {
+        background-color: #f39c12;
+    }
+</style>
+
+<!-- HERO SECTION -->
+<section class="gt-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4">
+                <h1 class="gt-hero-title">
+                    Welcome to <span class="gt-hero-highlight">GrapheneTrace</span>
+                </h1>
+                <p class="lead mt-3">
+                    A smart pressure monitoring platform that helps patients monitor posture,
+                    clinicians track risk, and testers validate heatmaps and algorithms.
+                </p>
+                <div class="mt-4">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg me-2">
+                        Login
+                    </a>
+                    <a asp-controller="Patient" asp-action="Dashboard" class="btn btn-outline-light btn-lg">
+                        Patient Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm gt-feature-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title mb-3">Live Pressure Insights</h5>
+                        <p class="card-text">
+                            Monitor real-time pressure maps, view historical trends, and capture notes
+                            whenever discomfort appears.
+                        </p>
+                        <div style="width:100%; height:220px; border:1px solid #333;
+                                    background: radial-gradient(circle at 30% 30%, #ffb199, #ffce99, #11131a);
+                                    display:flex; align-items:center; justify-content:center;">
+                            <span class="text-muted">
+                                Example visualisation of a pressure heatmap
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="py-5">
+    <div class="container">
+        <div class="gt-section-title">Who is GrapheneTrace for?</div>
+        <p class="gt-section-subtitle">
+            A single platform to support patients, clinicians, and testers.
+        </p>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card gt-feature-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Patients</h5>
+                        <p class="card-text">
+                            See your own pressure maps, track sessions over time, and record comments
+                            whenever you feel discomfort so your clinician can review them later.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card gt-feature-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Clinicians</h5>
+                        <p class="card-text">
+                            Quickly identify high-risk areas, receive alerts when patients remain in the
+                            same position too long, and use reports to support clinical decisions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card gt-feature-card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Testers</h5>
+                        <p class="card-text">
+                            Sort heatmaps by thermal reactivity, adjust threshold ranges, and inspect
+                            the methods used to generate charts for validation and research.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS SLIDER (2 visible, more by sliding) -->
+<section class="pb-5">
+    <div class="container">
+        <div class="gt-section-title">Testimonials</div>
+        <p class="gt-section-subtitle">
+            Feedback from people who benefit from GrapheneTrace.
+        </p>
+
+        <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators gt-carousel-indicators">
+                <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="0"
+                        class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+            </div>
+
+            <div class="carousel-inner">
+
+                <!-- SLIDE 1 -->
+                <div class="carousel-item active">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=patient1"
+                                     alt="Patient avatar" />
+                                <p class="gt-quote">
+                                    "The dashboard helps me see when my posture is causing pressure build-up.
+                                    I adjust earlier now and feel much more in control."
+                                </p>
+                                <div class="gt-name">Amir</div>
+                                <div class="gt-role">Patient</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=patient2"
+                                     alt="Patient avatar" />
+                                <p class="gt-quote">
+                                    "I like that I can write notes whenever I feel discomfort.
+                                    My clinician reviews them and we can talk about specific moments."
+                                </p>
+                                <div class="gt-name">Leah</div>
+                                <div class="gt-role">Patient</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 2 -->
+                <div class="carousel-item">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=clinician1"
+                                     alt="Clinician avatar" />
+                                <p class="gt-quote">
+                                    "GrapheneTrace gives me a clear overview of high-risk areas and how they change.
+                                    It saves time compared to reading raw sensor data."
+                                </p>
+                                <div class="gt-name">Dr. Lewis</div>
+                                <div class="gt-role">Clinician</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=clinician2"
+                                     alt="Clinician avatar" />
+                                <p class="gt-quote">
+                                    "Alerts when patients stay too long in one position let us intervene sooner
+                                    and document our decisions more clearly."
+                                </p>
+                                <div class="gt-name">Dr. Patel</div>
+                                <div class="gt-role">Clinician</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 3 -->
+                <div class="carousel-item">
+                    <div class="row justify-content-center">
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=tester1"
+                                     alt="Tester avatar" />
+                                <p class="gt-quote">
+                                    "Being able to sort heatmaps by thermal reactivity lets us quickly
+                                    identify edge cases when testing new sensors."
+                                </p>
+                                <div class="gt-name">Sara</div>
+                                <div class="gt-role">Tester</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card gt-testimonial-card h-100 shadow-sm text-center p-3">
+                                <img class="gt-avatar"
+                                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=tester2"
+                                     alt="Tester avatar" />
+                                <p class="gt-quote">
+                                    "Adjusting the ranges and seeing how the charts change is really useful
+                                    for validating algorithms."
+                                </p>
+                                <div class="gt-name">Tom</div>
+                                <div class="gt-role">Tester</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+</section>
