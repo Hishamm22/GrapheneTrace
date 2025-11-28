@@ -4,20 +4,25 @@ namespace GrapheneTrace.Models
 {
     public class SensorFrame
     {
-        [Key]                      // ✅ primary key
         public int FrameID { get; set; }
 
-        public int SessionID { get; set; }   // FK -> SensorSession
+        [Required]
+        public int SessionID { get; set; }
 
-        public int FrameIndex { get; set; }
+        public int FrameIndex { get; set; } // used to paginate / step through frames
+
         public DateTime Timestamp { get; set; }
 
         public int PeakPressureIndex { get; set; }
-        public float AveragePressure { get; set; }
-        public float ContactAreaPercent { get; set; }
+        public double AveragePressure { get; set; }
+        public double ContactAreaPercent { get; set; }
+        public double ThermalReactivityScore { get; set; }
 
-        public float ThermalReactivityScore { get; set; }
-        public int MinRange { get; set; }
-        public int MaxRange { get; set; }
+        // In a full system you might store the raw matrix too,
+        // but for this assignment we only use summary metrics.
+
+        // Navigation
+        public SensorSession Session { get; set; }
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

@@ -1,30 +1,53 @@
-﻿using GrapheneTrace.Data;               // access to AppDbContext and DbSeeder
+﻿using System;
+using GrapheneTrace.Data;
+using GrapheneTrace.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add MVC controllers and views.
+// ---------------------------------------------------------
+// 1. Database
+// ---------------------------------------------------------
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// ---------------------------------------------------------
+// 2. MVC + Session + CSV heat data service
+// ---------------------------------------------------------
+
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddScoped<IHeatDataService, CsvHeatDataService>();
+
 builder.Services.AddControllersWithViews();
 
-// Use session so we can remember who is logged in (user ID, role, name).
-builder.Services.AddSession();
-
-// Register AppDbContext and configure it to use SQL Server.
-// Connection string lives in appsettings.json under "GrapheneTraceConnection".
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("GrapheneTraceConnection")));
+// ---------------------------------------------------------
+// 3. Build app
+// ---------------------------------------------------------
 
 var app = builder.Build();
 
-// ✅ Seed demo data on startup (only if DB is empty).
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    DbSeeder.Seed(context);
-}
+// ---------------------------------------------------------
+// 4. Seed demo users (5 patient accounts)
+// ---------------------------------------------------------
 
-// Configure HTTP request pipeline.
+DemoSeeder.Seed(app.Services);
+
+// ---------------------------------------------------------
+// 5. HTTP pipeline
+// ---------------------------------------------------------
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -32,22 +55,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session must run before authorization and endpoints.
 app.UseSession();
-
 app.UseAuthorization();
 
-// Static files (css, js, images) and other assets.
-app.MapStaticAssets();
-
-// Default MVC route: /Home/Index by default.
 app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Start the application.
 app.Run();

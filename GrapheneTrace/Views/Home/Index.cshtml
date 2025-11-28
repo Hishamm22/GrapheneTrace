@@ -43,6 +43,71 @@
             color: #cfcfcf;
         }
 
+    .gt-heatmap-wrapper {
+        width: 100%;
+        border: 1px solid #333;
+        background-color: #11131a;
+        padding: 0.75rem;
+    }
+
+    .gt-heatmap {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-auto-rows: 1fr;
+        gap: 2px;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+    }
+
+    .gt-heat-cell {
+        width: 100%;
+        height: 100%;
+        border-radius: 2px;
+    }
+
+    .level-1 {
+        background-color: #1e272e;
+    }
+
+    .level-2 {
+        background-color: #37464f;
+    }
+
+    .level-3 {
+        background-color: #f39c12;
+    }
+
+    .level-4 {
+        background-color: #e67e22;
+    }
+
+    .level-5 {
+        background-color: #ff3838;
+    }
+
+    .gt-heatmap-caption {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #bbbbbb;
+        text-align: center;
+    }
+
+    .gt-heatmap-legend {
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: #bbbbbb;
+    }
+
+    .gt-legend-box {
+        width: 16px;
+        height: 10px;
+        border-radius: 2px;
+    }
+
     .gt-testimonial-card {
         background-color: #11131a;
         border: 1px solid #222;
@@ -78,7 +143,6 @@
     }
 </style>
 
-<!-- HERO SECTION -->
 <section class="gt-hero">
     <div class="container">
         <div class="row align-items-center">
@@ -108,12 +172,97 @@
                             Monitor real-time pressure maps, view historical trends, and capture notes
                             whenever discomfort appears.
                         </p>
-                        <div style="width:100%; height:220px; border:1px solid #333;
-                                    background: radial-gradient(circle at 30% 30%, #ffb199, #ffce99, #11131a);
-                                    display:flex; align-items:center; justify-content:center;">
-                            <span class="text-muted">
-                                Example visualisation of a pressure heatmap
-                            </span>
+
+                        <div class="gt-heatmap-wrapper">
+                            <div class="gt-heatmap">
+                                <!-- 8x8 demo grid -->
+                                <!-- Row 1 -->
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <!-- Row 2 -->
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <!-- Row 3 -->
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <!-- Row 4 -->
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-5"></div>
+                                <div class="gt-heat-cell level-5"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <!-- Row 5 -->
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-5"></div>
+                                <div class="gt-heat-cell level-5"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <!-- Row 6 -->
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-4"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <!-- Row 7 -->
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-3"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <!-- Row 8 -->
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-2"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                                <div class="gt-heat-cell level-1"></div>
+                            </div>
+
+                            <div class="gt-heatmap-caption">
+                                Example pressure heatmap (hotter colours show higher pressure)
+                            </div>
+
+                            <div class="gt-heatmap-legend">
+                                <span>Low</span>
+                                <span class="gt-legend-box level-1"></span>
+                                <span class="gt-legend-box level-2"></span>
+                                <span class="gt-legend-box level-3"></span>
+                                <span class="gt-legend-box level-4"></span>
+                                <span class="gt-legend-box level-5"></span>
+                                <span>High</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -122,7 +271,6 @@
     </div>
 </section>
 
-<!-- FEATURES SECTION -->
 <section class="py-5">
     <div class="container">
         <div class="gt-section-title">Who is GrapheneTrace for?</div>
@@ -168,7 +316,6 @@
     </div>
 </section>
 
-<!-- TESTIMONIALS SLIDER (2 visible, more by sliding) -->
 <section class="pb-5">
     <div class="container">
         <div class="gt-section-title">Testimonials</div>
@@ -187,8 +334,6 @@
             </div>
 
             <div class="carousel-inner">
-
-                <!-- SLIDE 1 -->
                 <div class="carousel-item active">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">
@@ -221,7 +366,6 @@
                     </div>
                 </div>
 
-                <!-- SLIDE 2 -->
                 <div class="carousel-item">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">
@@ -254,7 +398,6 @@
                     </div>
                 </div>
 
-                <!-- SLIDE 3 -->
                 <div class="carousel-item">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">

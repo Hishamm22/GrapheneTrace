@@ -4,16 +4,20 @@ namespace GrapheneTrace.Models
 {
     public class SensorSession
     {
-        [Key]                      // ✅ primary key
         public int SessionID { get; set; }
 
-        public int PatientID { get; set; }   // FK -> Patient
+        [Required]
+        public int PatientID { get; set; }
 
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
-        public string RecordingArea { get; set; }
-        public string SourceDeviceID { get; set; }
-        public string DataFilePath { get; set; }
-        public string AlgorithmDescription { get; set; }
+
+        [StringLength(100)]
+        public string? RecordingArea { get; set; } // e.g. "Seat", "Back", etc.
+
+        // Navigation
+        public Patient Patient { get; set; }
+        public ICollection<SensorFrame> Frames { get; set; } = new List<SensorFrame>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

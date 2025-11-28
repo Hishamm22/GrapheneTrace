@@ -1,4 +1,7 @@
-﻿using GrapheneTrace.Data;
+﻿using System.Threading.Tasks;
+using GrapheneTrace.Data;
+using GrapheneTrace.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,48 +17,59 @@ namespace GrapheneTrace.Controllers
         }
 
         // GET: /Account/Login
+        [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            return View(new LoginViewModel());
         }
 
         // POST: /Account/Login
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            if (!ModelState.IsValid)
             {
-                ViewBag.Error = "Please enter both email and password.";
-                return View();
+                // Show validation errors
+                return View(model);
             }
 
-            // Simple login check: email + password. For the assignment this is OK.
+            // Look up the user by email + password (PasswordHash stores plain text for the assignment)
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password);
+                .Include(u => u.PatientProfile)
+                .FirstOrDefaultAsync(u =>
+                    u.Email == model.Email &&
+                    u.PasswordHash == model.Password);
 
-            if (user == null || user.AccountStatus != "Active")
+            if (user == null)
             {
-                ViewBag.Error = "Invalid credentials or inactive account.";
-                return View();
+                ViewBag.Error = "Invalid email or password.";
+                return View(model);
             }
 
-            // Store the logged-in user's details in session.
+            // Store who is logged in in session
             HttpContext.Session.SetInt32("UserID", user.UserID);
-            HttpContext.Session.SetString("UserRole", user.Role);
-            HttpContext.Session.SetString("UserName", user.FullName);
+            HttpContext.Session.SetString("UserName", user.FullName ?? user.Email);
+            HttpContext.Session.SetString("UserRole", user.Role ?? "Patient");
 
-            // Redirect based on role.
-            if (user.Role == "Patient")
+            // Send patients to their dashboard
+            var role = (user.Role ?? "").ToLowerInvariant();
+            if (role == "patient" || user.PatientProfile != null)
             {
                 return RedirectToAction("Dashboard", "Patient");
             }
-            else if (user.Role == "Clinician")
+
+            if (role == "admin")
             {
-                // Clinician dashboard can be implemented later.
+                return RedirectToAction("Index", "Admin");
+            }
+
+            if (role == "clinician")
+            {
                 return RedirectToAction("Dashboard", "Clinician");
             }
 
-            // Default fall-back.
+            // Fallback
             return RedirectToAction("Index", "Home");
         }
 

@@ -1,5 +1,11 @@
-﻿using GrapheneTrace.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using GrapheneTrace.Data;
 using GrapheneTrace.Models;
+using GrapheneTrace.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,168 +14,129 @@ namespace GrapheneTrace.Controllers
     public class PatientController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IHeatDataService _heatData;
 
-        public PatientController(AppDbContext context)
+        // Map patient login emails to device IDs / CSV prefixes
+        // These device IDs must match the CSV filenames in the HeatData folder.
+        private static readonly Dictionary<string, string> EmailToDevice = new()
+        {
+            ["amelia@test.com"] = "d13043b3",
+            ["bilal@test.com"] = "de0e9b2c",
+            ["chloe@test.com"] = "1c0fd777",
+            ["daniel@test.com"] = "71e66ab3",
+            ["emily@test.com"] = "543d4676",
+        };
+
+        public PatientController(AppDbContext context, IHeatDataService heatData)
         {
             _context = context;
+            _heatData = heatData;
+        }
+
+        private async Task<(User user, Patient patient)?> GetCurrentUserAndPatientAsync()
+        {
+            var userId = HttpContext.Session.GetInt32("UserID");
+            if (userId == null) return null;
+
+            var user = await _context.Users
+                .Include(u => u.PatientProfile)
+                .FirstOrDefaultAsync(u => u.UserID == userId.Value);
+
+            if (user == null || user.PatientProfile == null)
+                return null;
+
+            return (user, user.PatientProfile);
         }
 
         // GET: /Patient/Dashboard
-        // Shows a simple overview and a list of recent sessions.
         public async Task<IActionResult> Dashboard()
         {
-            var userId = HttpContext.Session.GetInt32("UserID");
-            var role = HttpContext.Session.GetString("UserRole");
-
-            if (userId == null || role != "Patient")
-            {
-                // If not logged in as patient, send back to login.
-                return RedirectToAction("Login", "Account");
-            }
-
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.UserID == userId.Value);
-
-            if (patient == null)
-            {
-                ViewBag.Error = "Patient profile not found.";
-                ViewBag.PatientName = HttpContext.Session.GetString("UserName") ?? "Patient";
-                ViewBag.Sessions = new List<SensorSession>();
-                return View();
-            }
-
-            var sessions = await _context.SensorSessions
-                .Where(s => s.PatientID == patient.PatientID)
-                .OrderByDescending(s => s.StartTime)
-                .Take(5)
-                .ToListAsync();
-
-            ViewBag.PatientName = HttpContext.Session.GetString("UserName") ?? "Patient";
-            ViewBag.PatientId = patient.PatientID;
-            ViewBag.Sessions = sessions;
-
-            return View();
-        }
-
-        // GET: /Patient/ViewSession/5?frameIndex=0
-        // Shows details for a specific session, including a "current frame"
-        // and the comments attached to that session/frame.
-        public async Task<IActionResult> ViewSession(int sessionId, int frameIndex = 0)
-        {
-            var userId = HttpContext.Session.GetInt32("UserID");
-            var role = HttpContext.Session.GetString("UserRole");
-
-            if (userId == null || role != "Patient")
+            var up = await GetCurrentUserAndPatientAsync();
+            if (up == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // Find the patient for this user.
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.UserID == userId.Value);
+            var (user, patient) = up.Value;
 
-            if (patient == null)
+            // Map email to device ID (used to find CSV files)
+            if (!EmailToDevice.TryGetValue(user.Email.ToLowerInvariant(), out var deviceId))
             {
-                return RedirectToAction("Dashboard");
+                var emptyVm = new PatientDashboardViewModel
+                {
+                    PatientName = user.FullName ?? user.Email,
+                    Email = user.Email
+                };
+                ViewBag.Error = "No device is linked to your account.";
+                return View(emptyVm);
             }
 
-            // Make sure the session belongs to this patient.
-            var session = await _context.SensorSessions
-                .FirstOrDefaultAsync(s => s.SessionID == sessionId && s.PatientID == patient.PatientID);
+            // Load CSV heatmap + trend
+            var heatmapResult = _heatData.GetLatestHeatmap(deviceId);
+            var trend = _heatData.GetPeakTrend(deviceId) ?? new List<TrendPoint>();
 
-            if (session == null)
+            double peakPressure = 0;
+            double contactArea = 0;
+
+            if (heatmapResult != null && heatmapResult.Values != null)
             {
-                // Either invalid session ID or not owned by this patient.
-                return RedirectToAction("Dashboard");
+                var rows = heatmapResult.Values.GetLength(0);
+                var cols = heatmapResult.Values.GetLength(1);
+                int totalCells = rows * cols;
+                int activeCells = 0;
+
+                for (int r = 0; r < rows; r++)
+                {
+                    for (int c = 0; c < cols; c++)
+                    {
+                        var v = heatmapResult.Values[r, c];
+                        if (v > peakPressure) peakPressure = v;
+                        if (v > 0) activeCells++;
+                    }
+                }
+
+                if (totalCells > 0)
+                {
+                    contactArea = (double)activeCells / totalCells * 100.0;
+                }
             }
 
-            // Load frames for this session, ordered by FrameIndex.
-            var frames = await _context.SensorFrames
-                .Where(f => f.SessionID == sessionId)
-                .OrderBy(f => f.FrameIndex)
-                .ToListAsync();
-
-            if (!frames.Any())
+            var vm = new PatientDashboardViewModel
             {
-                ViewBag.Error = "No frames recorded for this session.";
-                ViewBag.Session = session;
-                ViewBag.CurrentFrame = null;
-                ViewBag.CurrentFrameIndex = 0;
-                ViewBag.TotalFrames = 0;
-                ViewBag.Comments = new List<Comment>();
-                return View();
-            }
+                PatientName = user.FullName ?? user.Email,
+                Email = user.Email,
+                PeakPressure = peakPressure,
+                ContactArea = Math.Round(contactArea, 1),
+                LastUpdated = heatmapResult?.Timestamp,
+                Heatmap = heatmapResult?.Values,
+                PeakTrend = trend
+            };
 
-            // Clamp frameIndex so it is always in range.
-            if (frameIndex < 0) frameIndex = 0;
-            if (frameIndex >= frames.Count) frameIndex = frames.Count - 1;
-
-            var currentFrame = frames[frameIndex];
-
-            // Load comments for this session (both general and frame-specific).
-            var comments = await _context.Comments
-                .Where(c => c.SessionID == sessionId &&
-                       (c.FrameID == null || c.FrameID == currentFrame.FrameID))
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-
-            ViewBag.PatientName = HttpContext.Session.GetString("UserName") ?? "Patient";
-            ViewBag.PatientId = patient.PatientID;
-
-            ViewBag.Session = session;
-            ViewBag.CurrentFrame = currentFrame;
-            ViewBag.CurrentFrameIndex = frameIndex;
-            ViewBag.TotalFrames = frames.Count;
-            ViewBag.Comments = comments;
-
-            return View();
+            return View(vm);
         }
 
-        // POST: /Patient/AddComment
-        // Saves a new note from the patient for a given session/frame.
+        // POST: /Patient/AddDashboardComment
         [HttpPost]
-        public async Task<IActionResult> AddComment(int sessionId, int? frameId, int currentFrameIndex, string content)
+        [ValidateAntiForgeryToken]
+        public IActionResult AddDashboardComment(string content)
         {
             var userId = HttpContext.Session.GetInt32("UserID");
-            var role = HttpContext.Session.GetString("UserRole");
-
-            if (userId == null || role != "Patient")
+            if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
             if (string.IsNullOrWhiteSpace(content))
             {
-                // Don't save empty comments; just come back to the session view.
-                TempData["CommentError"] = "Please enter a note before saving.";
-                return RedirectToAction("ViewSession", new { sessionId = sessionId, frameIndex = currentFrameIndex });
+                TempData["CommentError"] = "Please enter a note before submitting.";
+            }
+            else
+            {
+                TempData["CommentSuccess"] = "Your note has been recorded for this session (demo).";
+                TempData["LatestNote"] = content.Trim();
             }
 
-            var patient = await _context.Patients
-                .FirstOrDefaultAsync(p => p.UserID == userId.Value);
-
-            if (patient == null)
-            {
-                return RedirectToAction("Dashboard");
-            }
-
-            var comment = new Comment
-            {
-                PatientID = patient.PatientID,
-                SessionID = sessionId,
-                FrameID = frameId,
-                AuthorUserID = userId.Value,
-                CreatedAt = DateTime.Now,
-                Content = content,
-                IsClinicianReply = false
-            };
-
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
-
-            TempData["CommentSuccess"] = "Your note has been saved.";
-
-            return RedirectToAction("ViewSession", new { sessionId = sessionId, frameIndex = currentFrameIndex });
+            return RedirectToAction("Dashboard");
         }
     }
 }

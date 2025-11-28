@@ -1,60 +1,349 @@
-﻿@using GrapheneTrace.Models
+﻿@model GrapheneTrace.Models.PatientDashboardViewModel
+
 @{
     ViewData["Title"] = "Patient Dashboard";
-    var sessions = ViewBag.Sessions as List<SensorSession>;
+    var heatmap = Model.Heatmap;
 }
 
-<h1 class="mb-4">Welcome, @ViewBag.PatientName</h1>
+<style>
+    .gt-page {
+        padding: 2rem;
+        background-color: #f5f7fb;
+        min-height: 100vh;
+    }
 
-@if (ViewBag.Error != null)
-{
-    <div class="text-danger">@ViewBag.Error</div>
-}
-else
-{
-    <h3>Your recent pressure sessions</h3>
+    .gt-card {
+        background-color: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem 1.75rem;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        margin-bottom: 1.5rem;
+    }
 
-    @if (sessions == null || !sessions.Any())
+    .gt-title-main {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .gt-sub {
+        color: #6b7280;
+    }
+
+    .gt-card h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.75rem;
+    }
+
+    .metric-label {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .metric-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    /* --- Heatmap styles (big clean boxes like homepage) --- */
+
+    .gt-heatmap-wrapper {
+        border: 1px solid #333;
+        background-color: #11131a;
+        padding: 0.75rem;
+        display: inline-block;
+    }
+
+    .gt-heatmap-grid {
+        display: grid;
+        gap: 2px;
+        width: 280px;
+        height: 280px; /* clean square */
+    }
+
+    .gt-heat-cell {
+        border-radius: 2px;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* same 5-level scale as homepage demo */
+    .level-1 {
+        background-color: #1e272e;
+    }
+
+    .level-2 {
+        background-color: #37464f;
+    }
+
+    .level-3 {
+        background-color: #f39c12;
+    }
+
+    .level-4 {
+        background-color: #e67e22;
+    }
+
+    .level-5 {
+        background-color: #ff3838;
+    }
+
+    .gt-heatmap-caption {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #e5e7eb;
+        text-align: center;
+    }
+
+    .gt-heatmap-legend {
+        margin-top: 0.35rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: #e5e7eb;
+    }
+
+    .gt-legend-box {
+        width: 16px;
+        height: 10px;
+        border-radius: 2px;
+    }
+
+    .notes-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+</style>
+
+<div class="gt-page">
+    <div class="gt-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="gt-title-main">Welcome, @Model.PatientName</div>
+                <div class="gt-sub">Seating pressure monitoring and ulcer prevention</div>
+            </div>
+            <div class="text-end">
+                <div class="metric-label">Logged in as</div>
+                <div class="metric-value">@Model.Email</div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error as string))
     {
-        <p>No sessions recorded yet.</p>
+        <div class="gt-card alert alert-info">@ViewBag.Error</div>
     }
     else
     {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Session ID</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Recording Area</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var s in sessions)
-                {
-                    <tr>
-                        <td>@s.SessionID</td>
-                        <td>@s.StartTime</td>
-                        <td>@s.EndTime</td>
-                        <td>@s.RecordingArea</td>
-                        <td>
-                            <a asp-controller="Patient"
-                               asp-action="ViewSession"
-                               asp-route-sessionId="@s.SessionID"
-                               class="btn btn-sm btn-primary">
-                                View session
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-}
+        @* Alert banner *@
+        if (Model.PeakPressure > 180)
+        {
+            <div class="gt-card alert alert-danger">
+                <strong>High pressure detected (Peak @Model.PeakPressure.ToString("0"))!</strong>
+                &nbsp;Your threshold is 180.
+            </div>
+        }
 
-<p class="mt-3">
-    <a asp-controller="Account" asp-action="Logout" class="btn btn-secondary">
-        Logout
-    </a>
-</p>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="gt-card">
+                    <h4>Current Pressure Heatmap</h4>
+                    @if (heatmap == null || heatmap.Length == 0)
+                    {
+                        <p>No heatmap data found for your device.</p>
+                    }
+                    else
+                    {
+                        var rows = heatmap.GetLength(0);
+                        var cols = heatmap.GetLength(1);
+
+                        // 1) Build a coarse grid (e.g. 10x10) of average values
+                        int coarseRows = 10;
+                        int coarseCols = 10;
+
+                        if (rows < coarseRows) coarseRows = rows;
+                        if (cols < coarseCols) coarseCols = cols;
+
+                        int blockRow = (int)Math.Max(1, Math.Floor((double)rows / coarseRows));
+                        int blockCol = (int)Math.Max(1, Math.Floor((double)cols / coarseCols));
+
+                        double[,] coarse = new double[coarseRows, coarseCols];
+                        double coarseMax = 0;
+
+                        for (int cr = 0; cr < coarseRows; cr++)
+                        {
+                            for (int cc = 0; cc < coarseCols; cc++)
+                            {
+                                double sum = 0;
+                                int count = 0;
+
+                                int startRow = cr * blockRow;
+                                int endRow = Math.Min(startRow + blockRow, rows);
+
+                                int startCol = cc * blockCol;
+                                int endCol = Math.Min(startCol + blockCol, cols);
+
+                                for (int r = startRow; r < endRow; r++)
+                                {
+                                    for (int c = startCol; c < endCol; c++)
+                                    {
+                                        sum += heatmap[r, c];
+                                        count++;
+                                    }
+                                }
+
+                                double avg = count > 0 ? sum / count : 0;
+                                coarse[cr, cc] = avg;
+                                if (avg > coarseMax) coarseMax = avg;
+                            }
+                        }
+
+                        <div class="gt-heatmap-wrapper">
+                            <div class="gt-heatmap-grid" style="grid-template-columns: repeat(@coarseCols, 1fr);">
+                                @for (int cr = 0; cr < coarseRows; cr++)
+                                {
+                                    for (int cc = 0; cc < coarseCols; cc++)
+                                    {
+                                        var value = coarse[cr, cc];
+                                        double ratio = 0;
+                                        if (coarseMax > 0)
+                                        {
+                                            ratio = value / coarseMax;
+                                        }
+
+                                        string levelClass;
+                                        if (ratio < 0.15) levelClass = "level-1";
+                                        else if (ratio < 0.35) levelClass = "level-2";
+                                        else if (ratio < 0.6) levelClass = "level-3";
+                                        else if (ratio < 0.8) levelClass = "level-4";
+                                        else levelClass = "level-5";
+
+                                        <div class="gt-heat-cell @levelClass"></div>
+                                    }
+                                }
+                            </div>
+
+                            <div class="gt-heatmap-caption">
+                                Example pressure heatmap (hotter colours show higher pressure)
+                            </div>
+
+                            <div class="gt-heatmap-legend">
+                                <span>Low</span>
+                                <span class="gt-legend-box level-1"></span>
+                                <span class="gt-legend-box level-2"></span>
+                                <span class="gt-legend-box level-3"></span>
+                                <span class="gt-legend-box level-4"></span>
+                                <span class="gt-legend-box level-5"></span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="gt-card">
+                    <h4>Pressure Metrics</h4>
+                    <div class="mb-2">
+                        <div class="metric-label">Peak Pressure</div>
+                        <div class="metric-value">@Model.PeakPressure.ToString("0")</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="metric-label">Contact Area</div>
+                        <div class="metric-value">@Model.ContactArea.ToString("0.0")%</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="metric-label">Last Updated</div>
+                        <div class="metric-value">
+                            @(Model.LastUpdated?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gt-card mt-3">
+                    <h4>Peak Pressure Trend (3 days)</h4>
+                    <canvas id="trendChart" height="170"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="gt-card">
+            <h4>Your Notes &amp; Comments</h4>
+
+            @if (TempData["CommentError"] != null)
+            {
+                <div class="alert alert-danger">@TempData["CommentError"]</div>
+            }
+            @if (TempData["CommentSuccess"] != null)
+            {
+                <div class="alert alert-success">@TempData["CommentSuccess"]</div>
+            }
+            @if (TempData["LatestNote"] != null)
+            {
+                <div class="mb-2">
+                    <strong>Last saved note:</strong>
+                    <div>@TempData["LatestNote"]</div>
+                </div>
+            }
+
+            <form asp-action="AddDashboardComment" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <textarea name="content"
+                          class="form-control notes-textarea"
+                          placeholder="Write what you're feeling, discomfort zones, or posture changes..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            var ctx = document.getElementById('trendChart');
+            if (!ctx) return;
+
+            var labels = [
+                @foreach (var p in Model.PeakTrend)
+                {
+                        @: "@(p.Date?.ToString("dd/MM"))",
+                }
+            ];
+
+            var data = [
+                @foreach (var p in Model.PeakTrend)
+                {
+                        @: @p.PeakPressure,
+                }
+            ];
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Peak Pressure',
+                        data: data,
+                        fill: false,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        })();
+    </script>
+}
