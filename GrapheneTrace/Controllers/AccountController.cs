@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using GrapheneTrace.Data;
 using GrapheneTrace.Models;
 using Microsoft.AspNetCore.Http;
@@ -29,48 +30,80 @@ namespace GrapheneTrace.Controllers
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
-            {
-                // Show validation errors
                 return View(model);
-            }
 
-            // Look up the user by email + password (PasswordHash stores plain text for the assignment)
+            // simple plain-text password check (OK for coursework only)
             var user = await _context.Users
-                .Include(u => u.PatientProfile)
                 .FirstOrDefaultAsync(u =>
                     u.Email == model.Email &&
-                    u.PasswordHash == model.Password);
+                    u.PasswordHash == model.Password &&
+                    u.AccountStatus == "Active");
 
             if (user == null)
             {
-                ViewBag.Error = "Invalid email or password.";
+                ModelState.AddModelError(string.Empty, "Invalid email or password.");
                 return View(model);
             }
 
-            // Store who is logged in in session
             HttpContext.Session.SetInt32("UserID", user.UserID);
-            HttpContext.Session.SetString("UserName", user.FullName ?? user.Email);
             HttpContext.Session.SetString("UserRole", user.Role ?? "Patient");
+            HttpContext.Session.SetString("UserName", user.FullName ?? user.Email);
 
-            // Send patients to their dashboard
-            var role = (user.Role ?? "").ToLowerInvariant();
-            if (role == "patient" || user.PatientProfile != null)
+            // for now all logins go to patient dashboard
+            return RedirectToAction("Dashboard", "Patient");
+        }
+
+        // GET: /Account/Register
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View(new RegisterViewModel());
+        }
+
+        // POST: /Account/Register
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var existing = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == model.Email);
+
+            if (existing != null)
             {
-                return RedirectToAction("Dashboard", "Patient");
+                ModelState.AddModelError("Email", "An account with this email already exists.");
+                return View(model);
             }
 
-            if (role == "admin")
+            var user = new User
             {
-                return RedirectToAction("Index", "Admin");
-            }
+                Email = model.Email,
+                PasswordHash = model.Password,
+                FullName = model.FullName,
+                Role = "Patient",
+                AccountStatus = "Active",
+                CreatedAt = DateTime.Now
+            };
 
-            if (role == "clinician")
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var patient = new Patient
             {
-                return RedirectToAction("Dashboard", "Clinician");
-            }
+                UserID = user.UserID,
+                DateOfBirth = model.DateOfBirth ?? new DateTime(1990, 1, 1),
+                EmergencyContactName = model.EmergencyContactName ?? "Not set",
+                EmergencyContactNumber = model.EmergencyContactNumber ?? "Not set",
+                MedicalNotes = "Newly registered patient. No sensor data linked yet."
+            };
 
-            // Fallback
-            return RedirectToAction("Index", "Home");
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
+
+            TempData["RegisterSuccess"] = "Account created successfully. You can now log in.";
+            return RedirectToAction("Login");
         }
 
         // GET: /Account/Logout

@@ -5,124 +5,90 @@
 }
 
 <style>
-    body {
-        background-color: #05060a;
+    .gt-card {
+        background-color: #11131a;
+        border: 1px solid #222;
+        border-radius: 8px;
     }
 
-    .gt-login-wrapper {
-        min-height: calc(100vh - 60px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .gt-login-card {
-        background-color: #12141c;
-        border-radius: 16px;
-        padding: 2.5rem 3rem;
-        max-width: 420px;
-        width: 100%;
-        color: #f5f5f5;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-    }
-
-    .gt-login-title {
-        text-align: center;
-        color: #ff9800;
-        margin-bottom: 1.75rem;
-        font-size: 1.8rem;
-        font-weight: 700;
-    }
-
-    .gt-login-label {
-        font-weight: 500;
-        color: #f5f5f5;
-        margin-bottom: 0.25rem;
-    }
-
-    .gt-login-input {
-        background-color: #1b1e27;
-        border: 1px solid #303545;
-        color: #f5f5f5;
-    }
-
-        .gt-login-input::placeholder {
-            color: #7c8294;
+        .gt-card label {
+            color: #f39c12 !important;
+            font-weight: 600;
         }
 
-        .gt-login-input:focus {
-            border-color: #2979ff;
-            box-shadow: 0 0 0 0.15rem rgba(41, 121, 255, 0.35);
+        .gt-card input {
+            background-color: #f9f9f9 !important;
+            border: 1px solid #333 !important;
+            color: #000 !important;
         }
 
-    .gt-login-btn {
-        background-color: #2979ff;
-        border: none;
-        width: 100%;
-        font-weight: 600;
-    }
-
-        .gt-login-btn:hover {
-            background-color: #1f5ed1;
-        }
-
-    .gt-login-footer {
-        margin-top: 1rem;
-        text-align: center;
-        font-size: 0.9rem;
-        color: #c0c4d4;
-    }
-
-        .gt-login-footer a {
-            color: #ff9800;
-            text-decoration: none;
-        }
-
-            .gt-login-footer a:hover {
-                text-decoration: underline;
+            .gt-card input::placeholder {
+                color: #777 !important;
             }
+
+    .gt-link {
+        color: #f39c12 !important;
+        text-decoration: none;
+    }
+
+        .gt-link:hover {
+            color: #ffcc6b !important;
+        }
 </style>
 
-<div class="gt-login-wrapper">
-    <div class="gt-login-card">
-        <h2 class="gt-login-title">Login</h2>
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm gt-card">
+            <div class="card-body p-4">
 
-        @if (ViewBag.Error != null)
-        {
-            <div class="alert alert-danger">@ViewBag.Error</div>
-        }
+                <h2 class="text-center mb-1" style="color:#f39c12;">Login</h2>
+                <p class="text-center mb-4" style="color:#ccc; font-size:0.9rem;">
+                    Sign in to view your pressure dashboard.
+                </p>
 
-        <form asp-action="Login" asp-controller="Account" method="post">
-            @Html.AntiForgeryToken()
+                @if (TempData["RegisterSuccess"] != null)
+                {
+                    <div class="alert alert-success">@TempData["RegisterSuccess"]</div>
+                }
 
-            <div class="mb-3">
-                <label asp-for="Email" class="gt-login-label"></label>
-                <input asp-for="Email"
-                       class="form-control gt-login-input"
-                       placeholder="Enter your email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <form asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" placeholder="Enter your email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password"></label>
+                        <input asp-for="Password" placeholder="Enter your password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                        Login
+                    </button>
+
+                    <div class="text-center mb-2">
+                        <a href="#" class="gt-link">Forgot Password?</a>
+                    </div>
+
+                    <div class="text-center">
+                        <span style="color:#ccc;">Don’t have an account?</span>
+                        <!-- 🔹 Register link -->
+                        <a asp-action="Register" class="gt-link">Register now</a>
+                    </div>
+
+                </form>
+
             </div>
-
-            <div class="mb-3">
-                <label asp-for="Password" class="gt-login-label"></label>
-                <input asp-for="Password"
-                       class="form-control gt-login-input"
-                       placeholder="Enter your password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary gt-login-btn">Login</button>
-
-            <div class="gt-login-footer mt-3">
-                <span>Forgot Password?</span><br />
-                <span>Don’t have an account? <a asp-controller="Account" asp-action="Register">Register</a></span>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

@@ -132,7 +132,7 @@ namespace GrapheneTrace.Controllers
             }
             else
             {
-                TempData["CommentSuccess"] = "Your note has been recorded for this session (demo).";
+                TempData["CommentSuccess"] = "Your note has been recorded for this session.";
                 TempData["LatestNote"] = content.Trim();
             }
 

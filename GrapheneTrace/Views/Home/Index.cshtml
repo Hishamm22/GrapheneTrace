@@ -43,6 +43,7 @@
             color: #cfcfcf;
         }
 
+    /* HEATMAP STYLES */
     .gt-heatmap-wrapper {
         width: 100%;
         border: 1px solid #333;
@@ -143,6 +144,7 @@
     }
 </style>
 
+<!-- HERO SECTION -->
 <section class="gt-hero">
     <div class="container">
         <div class="row align-items-center">
@@ -158,8 +160,9 @@
                     <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg me-2">
                         Login
                     </a>
-                    <a asp-controller="Patient" asp-action="Dashboard" class="btn btn-outline-light btn-lg">
-                        Patient Dashboard
+                    <!-- 🔹 Was "Patient Dashboard" – now Register -->
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg">
+                        Register
                     </a>
                 </div>
             </div>
@@ -173,9 +176,10 @@
                             whenever discomfort appears.
                         </p>
 
+                        <!-- HEATMAP DISPLAY -->
                         <div class="gt-heatmap-wrapper">
                             <div class="gt-heatmap">
-                                <!-- 8x8 demo grid -->
+                                <!-- Your static demo layout (unchanged) -->
                                 <!-- Row 1 -->
                                 <div class="gt-heat-cell level-1"></div>
                                 <div class="gt-heat-cell level-1"></div>
@@ -185,6 +189,7 @@
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-1"></div>
                                 <div class="gt-heat-cell level-1"></div>
+
                                 <!-- Row 2 -->
                                 <div class="gt-heat-cell level-1"></div>
                                 <div class="gt-heat-cell level-2"></div>
@@ -194,6 +199,7 @@
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-1"></div>
+
                                 <!-- Row 3 -->
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
@@ -203,6 +209,7 @@
                                 <div class="gt-heat-cell level-3"></div>
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
+
                                 <!-- Row 4 -->
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-3"></div>
@@ -212,6 +219,7 @@
                                 <div class="gt-heat-cell level-4"></div>
                                 <div class="gt-heat-cell level-3"></div>
                                 <div class="gt-heat-cell level-2"></div>
+
                                 <!-- Row 5 -->
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-3"></div>
@@ -221,6 +229,7 @@
                                 <div class="gt-heat-cell level-4"></div>
                                 <div class="gt-heat-cell level-3"></div>
                                 <div class="gt-heat-cell level-2"></div>
+
                                 <!-- Row 6 -->
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
@@ -230,6 +239,7 @@
                                 <div class="gt-heat-cell level-3"></div>
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
+
                                 <!-- Row 7 -->
                                 <div class="gt-heat-cell level-1"></div>
                                 <div class="gt-heat-cell level-2"></div>
@@ -239,6 +249,7 @@
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-2"></div>
                                 <div class="gt-heat-cell level-1"></div>
+
                                 <!-- Row 8 -->
                                 <div class="gt-heat-cell level-1"></div>
                                 <div class="gt-heat-cell level-1"></div>
@@ -264,6 +275,7 @@
                                 <span>High</span>
                             </div>
                         </div>
+                        <!-- END HEATMAP -->
                     </div>
                 </div>
             </div>
@@ -271,6 +283,7 @@
     </div>
 </section>
 
+<!-- FEATURES SECTION -->
 <section class="py-5">
     <div class="container">
         <div class="gt-section-title">Who is GrapheneTrace for?</div>
@@ -316,6 +329,7 @@
     </div>
 </section>
 
+<!-- TESTIMONIALS SLIDER (unchanged) -->
 <section class="pb-5">
     <div class="container">
         <div class="gt-section-title">Testimonials</div>
@@ -334,6 +348,8 @@
             </div>
 
             <div class="carousel-inner">
+                <!-- slides unchanged ... -->
+                <!-- SLIDE 1 -->
                 <div class="carousel-item active">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">
@@ -366,6 +382,7 @@
                     </div>
                 </div>
 
+                <!-- SLIDE 2 -->
                 <div class="carousel-item">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">
@@ -398,6 +415,7 @@
                     </div>
                 </div>
 
+                <!-- SLIDE 3 -->
                 <div class="carousel-item">
                     <div class="row justify-content-center">
                         <div class="col-md-6 mb-3">
